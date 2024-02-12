@@ -16,6 +16,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -24,24 +25,22 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModelProvider
-import com.vishal_learning.sentiment.Presentation.MainActivityViewModel
+import com.vishal_learning.sentiment.Presentation.SentimentViewModel
 import com.vishal_learning.sentiment.ui.theme.SentimentTheme
 import com.vishal_learning.sentiment.ui.theme.btnColor
 import com.vishal_learning.sentiment.ui.theme.heading
-import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.*
-import androidx.compose.ui.graphics.Color
-import com.vishal_learning.sentiment.Model.Api
-import retrofit2.Response
+import java.util.Locale
 
 
 class MainActivity : ComponentActivity() {
+    private lateinit var viewModel: SentimentViewModel
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        viewModel = ViewModelProvider(this, ViewModelProvider.AndroidViewModelFactory.getInstance(application))
+            .get(SentimentViewModel::class.java)
         setContent {
             SentimentTheme {
                 // A surface container using the 'background' color from the theme
@@ -49,7 +48,6 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    val viewModel = ViewModelProvider(this)[MainActivityViewModel::class.java]
                     Sentiment(viewModel)
                 }
             }
@@ -58,20 +56,21 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun Sentiment(viewModel: MainActivityViewModel) {
+fun Sentiment(viewModel: SentimentViewModel) {
     var textState by remember { mutableStateOf("") }
-    val result by viewModel.result.observeAsState("")
+    val result by viewModel.result.collectAsState()
 
     Column(
         modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.SpaceEvenly,
+        verticalArrangement = Arrangement.spacedBy(40.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
             text = "Sentiment Analyzer",
-            fontSize = 28.sp,
-            color = Color.Black,
-            fontFamily = FontFamily.Serif
+            fontSize = 32.sp,
+            color = heading,
+            fontFamily = FontFamily.SansSerif,
+            modifier = Modifier.padding(top=6.dp)
         )
 
         OutlinedTextField(
@@ -83,25 +82,17 @@ fun Sentiment(viewModel: MainActivityViewModel) {
 
         Button(
             onClick = {
-                // Call ViewModel method to get sentiment
-                viewModel.getSentiments(textState)
+                viewModel.performSentimentAnalysis(textState)
             },
             shape = RoundedCornerShape(7.dp),
             colors = ButtonDefaults.buttonColors(btnColor),
             modifier = Modifier.padding(vertical = 10.dp, horizontal = 20.dp)
         ) {
-            Text(
-                "Classify Text",
-                fontWeight = FontWeight.Bold,
-                fontSize = 15.sp
-            )
+            Text("Classify Text", fontWeight = FontWeight.Bold, fontSize = 15.sp)
         }
 
-        if (result.isNotEmpty()) {
-            Text(
-                text = result,
-                fontSize = 18.sp
-            )
+        result?.let {
+            Text(text = it.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.ROOT) else it.toString() }, fontSize = 24.sp, fontWeight = FontWeight.W400)
         }
     }
 }

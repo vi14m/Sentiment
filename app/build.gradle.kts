@@ -70,6 +70,10 @@ dependencies {
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
     implementation("androidx.compose.runtime:runtime-livedata:1.6.1")
+    implementation("com.squareup.retrofit2:converter-moshi:2.9.0")
+    implementation("androidx.compose.runtime:runtime-livedata:1.6.2")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
+
 
 
 }

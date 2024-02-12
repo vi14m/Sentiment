@@ -1,37 +1,27 @@
 package com.vishal_learning.sentiment.Presentation
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.vishal_learning.sentiment.Model.ApiNetwork
+import com.vishal_learning.sentiment.Model.SentimentRepository
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-class MainActivityViewModel : ViewModel() {
-    private val _result = MutableLiveData<String>()
-    val result: LiveData<String> = _result
+class SentimentViewModel : ViewModel() {
+    private val _result = MutableStateFlow<String?>(null)
+    val result: StateFlow<String?> = _result
 
-    fun getSentiments(textState: String) {
-        viewModelScope.launch {
+    fun performSentimentAnalysis(text: String) {
+        viewModelScope.launch(Dispatchers.IO) {
             try {
-                val response = ApiNetwork.retrofit.getSentiment(textState)
-                response?.let {
-                    if (it.isNotEmpty()) {
-                        val highestScoreLabel =
-                            it[0].maxByOrNull { apiResponse -> apiResponse.body()?.score ?: 0.0 }
-                                ?.body()?.label
-                        val highestScore =
-                            it[0].maxByOrNull { apiResponse -> apiResponse.body()?.score ?: 0.0 }
-                                ?.body()?.score
-                        _result.value = "$highestScoreLabel\n$highestScore"
-                    }
-                }
+                _result.value = SentimentRepository().analyzeSentiment(text)[0][0].label
             } catch (e: Exception) {
-                // Handle errors appropriately (e.g., show error message to user)
                 _result.value = "Error: ${e.message}"
             }
         }
     }
 }
+
 
 
