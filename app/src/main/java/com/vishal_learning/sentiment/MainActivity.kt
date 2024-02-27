@@ -150,9 +150,3 @@ fun AnimatedResult(result: String?) {
         }
     }
 }
-
-@Preview(showBackground = true)
-@Composable
-fun HomePreview(){
-
-}
